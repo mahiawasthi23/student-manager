@@ -9,7 +9,7 @@ function App() {
 
   const fetchStudents = async () => {
     // const res = await fetch("http://127.0.0.1:5000/students");
-    const res = await fetch("https://student-manager-five.vercel.app//students")
+    const res = await fetch("https://student-manager-five.vercel.app/students")
     const data = await res.json();
     setStudents(data);
   };
@@ -22,7 +22,7 @@ function App() {
     if (!name || !age || !course) return;
 
     // await fetch("http://127.0.0.1:5000/students", {
-      await fetch("https://student-manager-five.vercel.app//students",{
+      await fetch("https://student-manager-five.vercel.app/students",{
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, age, course }),
@@ -36,7 +36,7 @@ function App() {
 
   const deleteStudent = async (id) => {
     // await fetch(`http://127.0.0.1:5000/students/${id}`, {
-    await fetch(`https://student-manager-five.vercel.app//students/${id}`, {
+    await fetch(`https://student-manager-five.vercel.app/students/${id}`, {
       method: "DELETE",
     });
     fetchStudents();
@@ -51,7 +51,7 @@ function App() {
 
   const updateStudent = async () => {
     // await fetch(`http://127.0.0.1:5000/students/${editId}`, {
-    await fetch(`https://student-manager-five.vercel.app//students/${editId}`, {
+    await fetch(`https://student-manager-five.vercel.app/students/${editId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, age, course }),
