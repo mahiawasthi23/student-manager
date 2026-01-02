@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 
+
+const API_BASE_URL = window.location.hostname === "localhost" 
+  ? "http://127.0.0.1:5000/students" 
+  : "https://student-manager-five.vercel.app/students";
+
 function App() {
   const [students, setStudents] = useState([]);
   const [name, setName] = useState("");
@@ -7,40 +12,58 @@ function App() {
   const [course, setCourse] = useState("");
   const [editId, setEditId] = useState(null);
 
+
   const fetchStudents = async () => {
-    // const res = await fetch("http://127.0.0.1:5000/students");
-    const res = await fetch("https://student-manager-five.vercel.app/students")
-    const data = await res.json();
-    setStudents(data);
+    try {
+      const res = await fetch(API_BASE_URL);
+      if (!res.ok) throw new Error("Failed to fetch students");
+      const data = await res.json();
+      setStudents(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Backend connection error:", err.message);
+    }
   };
 
   useEffect(() => {
     fetchStudents();
   }, []);
 
+ 
   const addStudent = async () => {
     if (!name || !age || !course) return;
 
-    // await fetch("http://127.0.0.1:5000/students", {
-      await fetch("https://student-manager-five.vercel.app/students",{
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, age, course }),
-    });
+    try {
+      const res = await fetch(API_BASE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, age, course }),
+      });
 
-    setName("");
-    setAge("");
-    setCourse("");
-    fetchStudents();
+      if (res.ok) {
+        setName("");
+        setAge("");
+        setCourse("");
+        fetchStudents();
+      } else {
+        alert("Server error while adding student.");
+      }
+    } catch (err) {
+      alert("Cannot connect to server. Is your Flask backend running?");
+    }
   };
+
 
   const deleteStudent = async (id) => {
-    // await fetch(`http://127.0.0.1:5000/students/${id}`, {
-    await fetch(`https://student-manager-five.vercel.app/students/${id}`, {
-      method: "DELETE",
-    });
-    fetchStudents();
+    try {
+      const res = await fetch(`${API_BASE_URL}/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) fetchStudents();
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
   };
+
 
   const editStudent = (student) => {
     setEditId(student.id);
@@ -49,19 +72,25 @@ function App() {
     setCourse(student.course);
   };
 
+ 
   const updateStudent = async () => {
-    // await fetch(`http://127.0.0.1:5000/students/${editId}`, {
-    await fetch(`https://student-manager-five.vercel.app/students/${editId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, age, course }),
-    });
+    try {
+      const res = await fetch(`${API_BASE_URL}/${editId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, age, course }),
+      });
 
-    setEditId(null);
-    setName("");
-    setAge("");
-    setCourse("");
-    fetchStudents();
+      if (res.ok) {
+        setEditId(null);
+        setName("");
+        setAge("");
+        setCourse("");
+        fetchStudents();
+      }
+    } catch (err) {
+      console.error("Update failed:", err);
+    }
   };
 
   return (
@@ -76,7 +105,7 @@ function App() {
           {editId ? "Edit Student Details" : "Add Student Details"}
         </h2>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
           <input
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 outline-none"
             placeholder="Student Name"
@@ -87,6 +116,7 @@ function App() {
           <input
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 outline-none"
             placeholder="Age"
+            type="number"
             value={age}
             onChange={(e) => setAge(e.target.value)}
           />
@@ -113,47 +143,43 @@ function App() {
       </div>
 
       <div className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {students.length === 0 && (
+        {students.length === 0 ? (
           <p className="col-span-full text-center text-gray-600">
             No students added yet 🚫
           </p>
-        )}
-
-        {students.map((s) => (
-          <div
-            key={s.id}
-            className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition"
-          >
-            <h3 className="text-xl font-bold text-indigo-600 mb-1">
-              {s.name}
-            </h3>
-
-            <p className="text-gray-600 mb-4">
-              🎂 {s.age} years <br />
-              📘 {s.course}
-            </p>
-
-            <div className="flex justify-between">
-              <button
-                onClick={() => editStudent(s)}
-                className="px-4 py-1 rounded-lg bg-yellow-400 text-white hover:bg-yellow-500"
-              >
-                Edit
-              </button>
-
-              <button
-                onClick={() => deleteStudent(s.id)}
-                className="px-4 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600"
-              >
-                Delete
-              </button>
+        ) : (
+          students.map((s) => (
+            <div
+              key={s.id}
+              className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition"
+            >
+              <h3 className="text-xl font-bold text-indigo-600 mb-1">
+                {s.name}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                🎂 {s.age} years <br />
+                📘 {s.course}
+              </p>
+              <div className="flex justify-between">
+                <button
+                  onClick={() => editStudent(s)}
+                  className="px-4 py-1 rounded-lg bg-yellow-400 text-white hover:bg-yellow-500"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteStudent(s.id)}
+                  className="px-4 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
 }
 
 export default App;
-

@@ -4,5 +4,17 @@
     "age": "23",
     "course": "Frontend developer",
     "id": 1
+  },
+  {
+    "name": "roshani ",
+    "age": "23",
+    "course": "html",
+    "id": 2
+  },
+  {
+    "name": "karan",
+    "age": "14",
+    "course": "math",
+    "id": 3
   }
 ]
